@@ -1,0 +1,181 @@
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+    <title>Parametric Equalizer</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="main.css">
+    <script type="application/javascript" src="main.js"></script>
+    <script id="vs" type="x-shader/x-vertex">
+
+uniform mat4 u_projection;
+uniform mat4 u_view;
+uniform mat4 u_model;
+attribute vec4 a_position;
+attribute vec4 a_color;
+varying vec4 v_color;
+
+void main(void){
+    gl_Position = u_projection * u_view * u_model * a_position;
+    v_color = a_color;
+}
+
+    </script>
+    <script id="fs" type="x-shader/x-fragment">
+
+precision mediump float;
+
+uniform vec4 u_color;
+varying vec4 v_color;
+
+void main(void){
+    gl_FragColor = u_color * v_color;
+}
+
+    </script>
+</head>
+<body>
+
+<div class="screen">
+    <div class="background">
+        <canvas id="mainCanvas" class="mainCanvas"></canvas>
+    </div>
+
+    <div class="foreground">
+        <div class="header">
+            <div style="width: 1px">
+                <input id="volume" type="image" src="volume.png">
+            </div>
+            <div style="width: 1px">
+                <input id="play" type="image" src="play.png">
+            </div>
+            <div>
+                <input id="time" type="range" min="0" max="1000" value="0">
+            </div>
+        </div>
+
+        <div id="navigation" class="navigation">
+            <div>
+                <table>
+                    <tbody class="equalizer">
+                    <tr>
+                        <td class="rangeTitle">MASTER</td>
+                        <td class="rangeSlider">
+                            <input id="master" min="0" max="100" type="range" value="25" title="">
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan="2">
+                            <hr class="separator">
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td class="rangeTitle">30</td>
+                        <td class="rangeSlider">
+                            <input id="frequency0" type="range" min="0" max="200" value="100" title="">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="rangeTitle">60</td>
+                        <td class="rangeSlider">
+                            <input id="frequency1" type="range" min="0" max="200" value="100" title="">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="rangeTitle">120</td>
+                        <td class="rangeSlider">
+                            <input id="frequency2" type="range" min="0" max="200" value="100" title="">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="rangeTitle">240</td>
+                        <td class="rangeSlider">
+                            <input id="frequency3" type="range" min="0" max="200" value="100" title="">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="rangeTitle">500</td>
+                        <td class="rangeSlider">
+                            <input id="frequency4" type="range" min="0" max="200" value="100" title="">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="rangeTitle">1k</td>
+                        <td class="rangeSlider">
+                            <input id="frequency5" type="range" min="0" max="200" value="100" title="">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="rangeTitle">2k</td>
+                        <td class="rangeSlider">
+                            <input id="frequency6" type="range" min="0" max="200" value="100" title="">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="rangeTitle">4k</td>
+                        <td class="rangeSlider">
+                            <input id="frequency7" type="range" min="0" max="200" value="100" title="">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="rangeTitle">8k</td>
+                        <td class="rangeSlider">
+                            <input id="frequency8" type="range" min="0" max="200" value="100" title="">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="rangeTitle">16k</td>
+                        <td class="rangeSlider">
+                            <input id="frequency9" type="range" min="0" max="200" value="100" title="">
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan="2">
+                            <hr class="separator">
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td class="selectTitle">PRESET</td>
+                        <td class="selectBox">
+                            <select id="preset" title="">
+                                <option value="0">デフォルト</option>
+                                <option value="1">ロック</option>
+                                <option value="2">ポップ</option>
+                                <option value="3">ダンス</option>
+                                <option value="4">ジャズ</option>
+                                <option value="5">古いラジオ</option>
+                                <option value="6">水中</option>
+                                <option value="7">低音</option>
+                                <option value="8">中音</option>
+                                <option value="9">高音</option>
+                            </select>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan="2">
+                            <hr class="separator">
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td class="fileSelector" colspan="2">
+                            <input id="fileSelector" type="file">
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <p id="musicName" class="musicName">
+            <a href="http://musmus.main.jp/">デフォルトBGM : MusMus</a>
+            <br>
+            ドラッグ＆ドロップで任意の曲を再生可能
+        </p>
+    </div>
+</div>
+</body>
+</html>

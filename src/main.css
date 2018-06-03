@@ -1,0 +1,147 @@
+
+body {
+    margin: 0;
+    overflow: hidden;
+}
+
+hr {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+div.screen {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+}
+
+div.background {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(16, 16, 16, 1.0);
+}
+
+canvas.mainCanvas {
+    width: 100%;
+    height: 100%;
+}
+
+div.foreground {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+div.header {
+    display: table;
+    position: relative;
+    width: calc(100vw - 30px);
+    padding: 0 15px 0 15px;
+    white-space: nowrap;
+    line-height: 0;
+    background-color: rgba(64, 64, 64, 0.5);
+    pointer-events: auto;
+}
+
+div.header div {
+    display: table-cell;
+    height: 50px;
+    margin: 0 15px 0 15px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+div.header input[type=image] {
+    width: 32px;
+    height: 32px;
+    margin: 0 20px 0 20px;
+    outline: none;
+}
+
+div.header input[type=range] {
+    width: 90%;
+    height: 32px;
+    margin: 0 15px 0 15px;
+}
+
+div.navigation {
+    position: absolute;
+    top: 50px;
+    bottom: 0;
+    background-color: rgba(64, 64, 64, 0.3);
+    overflow-x: scroll;
+    pointer-events: auto;
+}
+
+div.navigation div {
+    padding: 15px 2px 15px 2px;
+}
+
+hr.separator {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border-top: 1px double rgb(92, 92, 92);
+}
+
+td.rangeTitle {
+    padding: 2px 10px 2px 10px;
+    text-align: center;
+    font-size: small;
+    color: rgb(192, 192, 192);
+}
+
+td.rangeSlider {
+    padding: 2px 10px 2px 10px;
+}
+
+td.selectTitle {
+    padding: 2px 10px 2px 10px;
+    text-align: center;
+    font-size: small;
+    color: rgb(192, 192, 192);
+}
+
+td.selectBox {
+    padding: 2px 10px 2px 10px;
+    text-align: center;
+}
+
+td.fileSelector {
+    padding: 10px 10px 10px 10px;
+    text-align: center;
+}
+
+p.musicName {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    padding: 10px 10px 10px 10px;
+    text-align: right;
+    color: rgb(192, 192, 192);
+    pointer-events: auto;
+}
+
+p.musicName a:link {
+    color: rgb(192, 192, 192);
+}
+
+p.musicName a:visited {
+    color: rgb(192, 192, 192);
+}
+
+p.musicName a:hover {
+    color: rgb(192, 192, 192);
+}
+
+p.musicName a:active {
+    color: rgb(192, 192, 192);
+}
