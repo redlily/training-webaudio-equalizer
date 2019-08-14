@@ -1,106 +1,7 @@
-"use strict";
-
-// 音声系のユーティリティ
-let sutils = {};
-(function () {
-
-    const CR = 0; // 実数部
-    const CI = 1; // 虚数部
-
-    // 複素数の入れ替え
-    function swap(v, a, b) {
-        let ar = v[a + CR];
-        let ai = v[a + CI];
-        v[a + CR] = v[b + CR];
-        v[a + CI] = v[b + CI];
-        v[b + CR] = ar;
-        v[b + CI] = ai;
-    }
-
-    // 高速フーリエ変換
-    sutils.fft = function (n, v, inv) {
-        inv = inv == null ? false : inv;
-
-        let rad = (inv ? 2.0 : -2.0) * Math.PI / n;
-        let cs = Math.cos(rad), sn = Math.sin(rad); // 回転因子の回転用複素数
-
-        for (let m = (n <<= 1), mh; 2 <= (mh = m >>> 1); m = mh) {
-            // 回転因子が0°の箇所を処理
-            for (let i = 0; i < n; i += m) {
-                let j = i + mh;
-                let ar = v[i + CR], ai = v[i + CI];
-                let br = v[j + CR], bi = v[j + CI];
-
-                // 前半 (a + b)
-                v[i + CR] = ar + br;
-                v[i + CI] = ai + bi;
-
-                // 後半 (a - b)
-                v[j + CR] = ar - br;
-                v[j + CI] = ai - bi;
-            }
-
-            // 回転因子が0°以外の箇所を処理
-            let wcs = cs, wsn = sn; // 回転因子
-            for (let i = 2; i < mh; i += 2) {
-                for (let j = i; j < n; j += m) {
-                    let k = j + mh;
-                    let ar = v[j + CR], ai = v[j + CI];
-                    let br = v[k + CR], bi = v[k + CI];
-
-                    // 前半 (a + b)
-                    v[j + CR] = ar + br;
-                    v[j + CI] = ai + bi;
-
-                    // 後半 (a - b) * w
-                    let xr = ar - br;
-                    let xi = ai - bi;
-                    v[k + CR] = xr * wcs - xi * wsn;
-                    v[k + CI] = xr * wsn + xi * wcs;
-                }
-
-                // 回転因子を回転
-                let tcs = wcs * cs - wsn * sn;
-                wsn = wcs * sn + wsn * cs;
-                wcs = tcs;
-            }
-
-            // 回転因子の回転用の複素数を自乗して回転
-            let tcs = cs * cs - sn * sn;
-            sn = 2.0 * (cs * sn);
-            cs = tcs;
-        }
-
-        let m = n >>> 1;
-        let m2 = m + 2;
-        let mh = n >>> 2;
-
-        for (let i = 0, j = 0; i < m; i += 4) {
-            // データの入れ替え
-            swap(v, i + m, j + 2);
-            if (i < j) {
-                swap(v, i + m2, j + m2);
-                swap(v, i, j);
-            }
-
-            // ビットオーダを反転した変数としてインクリメント
-            for (let k = mh; (j ^= k) < k; k >>= 1) {
-            }
-        }
-
-        if (inv) {
-            // 逆変換用のスケーリング
-            for (let i = 0; i < n; ++i) {
-                v[i] /= n;
-            }
-        }
-    };
-
-})();
-
 // 3D系のユーティリティ
 let tutils = {};
 (function () {
+    "use strict";
 
     ////////////////////////////////////////////////////////////////
     // WebGL関連
@@ -406,6 +307,7 @@ let tutils = {};
 
 // メインの処理
 (function () {
+    "use strict";
 
     // 定数
     const NUM_FREQUENCY_BUNDLES = 10;
@@ -530,7 +432,7 @@ let tutils = {};
             }
 
             // FFTをかけて周波数
-            sutils.fft(NUM_SAMPLES * 2, audioWorkBuffer, false);
+            DFT.fftHighSpeed(NUM_SAMPLES * 2, audioWorkBuffer);
 
             /*
             離散フーリエ変換の特性に対する概要
@@ -595,7 +497,7 @@ let tutils = {};
             updateFrequencyVisualizerParam(i, audioWorkBuffer);
 
             // 逆FFTをかける
-            sutils.fft(NUM_SAMPLES * 2, audioWorkBuffer, true);
+            DFT.fftHighSpeed(NUM_SAMPLES * 2, audioWorkBuffer, true);
 
             // 前回の出力波形の後半と今回の出力波形の前半をクロスフェードさせて出力する
             let master = masterSlider.value / 100.0;
@@ -932,7 +834,7 @@ let tutils = {};
     function updateFrequencyVisualizerParam(channel, frequency) {
         for (let i = 0; i < NUM_VISUALIZE_BINDS; ++i) {
             // 特徴的な周波数成分は低周波数に集まりやすいので、低周波数の音を中心に解像度を上げる
-            let indexFq = Math.round(NUM_SAMPLES * Math.pow(0.5, i * NUM_FREQUENCY_BUNDLES / NUM_VISUALIZE_BINDS));
+            let indexFq = (Math.round(NUM_SAMPLES * Math.pow(0.5, i * NUM_FREQUENCY_BUNDLES / NUM_VISUALIZE_BINDS)) - 1) << 1;
 
             // 複素数の絶対値を求める
             let re = frequency[indexFq];
