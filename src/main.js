@@ -406,7 +406,7 @@ let tutils = {};
     }
 
     // 音声の波形を処理
-    function onAudioProcess() {
+    function onAudioProcess(event) {
         let input = event.inputBuffer;
         let output = event.outputBuffer;
         for (let i = 0; i < output.numberOfChannels; ++i) {

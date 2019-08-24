@@ -1,18 +1,13 @@
-class DFT {
-    "use strict";
 
-    /** 実数インデックス */
-    static RE = 0;
-    /** 虚数インデックス */
-    static IM = 1;
+class DFT {
 
     static swap(v, a, b) {
-        let ar = v[a + DFT.RE];
-        let ai = v[a + DFT.IM];
-        v[a + DFT.RE] = v[b + DFT.RE];
-        v[a + DFT.IM] = v[b + DFT.IM];
-        v[b + DFT.RE] = ar;
-        v[b + DFT.IM] = ai;
+        let ar = v[a + 0];
+        let ai = v[a + 1];
+        v[a + 0] = v[b + 0];
+        v[a + 1] = v[b + 1];
+        v[b + 0] = ar;
+        v[b + 1] = ai;
     }
 
     static swapElements(n, v) {
@@ -33,9 +28,9 @@ class DFT {
         }
     }
 
-    static scaleElements(n, v) {
+    static scaleElements(n, v, s) {
         for (let i = 0; i < n; ++i) {
-            v[i] /= n;
+            v[i] /= s;
         }
     }
 
@@ -46,18 +41,22 @@ class DFT {
      * @param b 出力用のデータ、実数、虚数の順で配列される
      */
     static dft(n, a, b) {
-        for (let i = 0; i < n; ++i) {
+        // b[y] = Σ[N - 1, j = 0] a[j] * e^(-2.0 * i * j * k / N)
+        for (let k = 0; k < n; ++k) {
+            // Σ[N - 1, j = 0] a[j] * e^(-2.0 * i * j * k / N)
             let sumRe = 0;
             let sumIm = 0;
             for (let j = 0; j < n; ++j) {
-                let rad = -2.0 * Math.PI * i * j / n;
+                // e^(-2.0 * i * j * k / N)
+                let rad = -2.0 * Math.PI * k * j / n;
                 let cs = Math.cos(rad), sn = Math.sin(rad);
-                let re = a[(j << 1) + DFT.RE], im = a[(j << 1) + DFT.IM];
+                let re = a[(j << 1) + 0], im = a[(j << 1) + 1];
+                // a[j] * e^(-2.0 * i * j * k / N)
                 sumRe += re * cs - im * sn;
                 sumIm += re * sn + im * cs;
             }
-            b[(i << 1) + DFT.RE] = sumRe;
-            b[(i << 1) + DFT.IM] = sumIm;
+            b[(k << 1) + 0] = sumRe;
+            b[(k << 1) + 1] = sumIm;
         }
     }
 
@@ -68,22 +67,23 @@ class DFT {
      * @param b 出力用のデータ、実数、虚数の順で配列される
      */
     static idft(n, a, b) {
+        // b[j] = Σ[N - 1, k = 0] (1 / N) * a[k] * e^(2.0 * i * j * k / N)
         for (let i = 0; i < n; ++i) {
+            // Σ[N - 1, k = 0] (1 / N) * a[k] * e^(2.0 * i * j * k / N)
             let sumRe = 0;
             let sumIm = 0;
             for (let j = 0; j < n; ++j) {
+                // e^(2.0 * i * j * k / N)
                 let rad = 2.0 * Math.PI * i * j / n;
                 let cs = Math.cos(rad), sn = Math.sin(rad);
-                let re = a[(j << 1) + DFT.RE], im = a[(j << 1) + DFT.IM];
+                let re = a[(j << 1) + 0], im = a[(j << 1) + 1];
+                // a[k] * e^(2.0 * i * j * k / N)
                 sumRe += re * cs - im * sn;
                 sumIm += re * sn + im * cs;
             }
-            b[(i << 1) + DFT.RE] = sumRe;
-            b[(i << 1) + DFT.IM] = sumIm;
+            b[(i << 1) + 0] = sumRe / n;
+            b[(i << 1) + 1] = sumIm / n;
         }
-
-        // スケール
-        DFT.scaleElements(n << 1, b);
     }
 
     /**
@@ -103,18 +103,18 @@ class DFT {
 
                 for (let j = i; j < nd; j += m) {
                     let k = j + mh;
-                    let ar = v[j + DFT.RE], ai = v[j + DFT.IM];
-                    let br = v[k + DFT.RE], bi = v[k + DFT.IM];
+                    let ar = v[j + 0], ai = v[j + 1];
+                    let br = v[k + 0], bi = v[k + 1];
 
                     // 前半 (a + b)
-                    v[j + DFT.RE] = ar + br;
-                    v[j + DFT.IM] = ai + bi;
+                    v[j + 0] = ar + br;
+                    v[j + 1] = ai + bi;
 
                     // 後半 (a - b) * w
                     let xr = ar - br;
                     let xi = ai - bi;
-                    v[k + DFT.RE] = xr * cs - xi * sn;
-                    v[k + DFT.IM] = xr * sn + xi * cs;
+                    v[k + 0] = xr * cs - xi * sn;
+                    v[k + 1] = xr * sn + xi * cs;
                 }
             }
             rad *= 2;
@@ -125,7 +125,7 @@ class DFT {
 
         // 逆変換用のスケール
         if (inv) {
-            DFT.scaleElements(nd, v);
+            DFT.scaleElements(nd, v, n);
         }
     }
 
@@ -144,16 +144,16 @@ class DFT {
             // 回転因子が0°の箇所を処理
             for (let i = 0; i < nd; i += m) {
                 let j = i + mh;
-                let ar = v[i + DFT.RE], ai = v[i + DFT.IM];
-                let br = v[j + DFT.RE], bi = v[j + DFT.IM];
+                let ar = v[i + 0], ai = v[i + 1];
+                let br = v[j + 0], bi = v[j + 1];
 
                 // 前半 (a + b)
-                v[i + DFT.RE] = ar + br;
-                v[i + DFT.IM] = ai + bi;
+                v[i + 0] = ar + br;
+                v[i + 1] = ai + bi;
 
                 // 後半 (a - b)
-                v[j + DFT.RE] = ar - br;
-                v[j + DFT.IM] = ai - bi;
+                v[j + 0] = ar - br;
+                v[j + 1] = ai - bi;
             }
 
             // 回転因子が0°以外の箇所を処理
@@ -161,18 +161,18 @@ class DFT {
             for (let i = 2; i < mh; i += 2) {
                 for (let j = i; j < nd; j += m) {
                     let k = j + mh;
-                    let ar = v[j + DFT.RE], ai = v[j + DFT.IM];
-                    let br = v[k + DFT.RE], bi = v[k + DFT.IM];
+                    let ar = v[j + 0], ai = v[j + 1];
+                    let br = v[k + 0], bi = v[k + 1];
 
                     // 前半 (a + b)
-                    v[j + DFT.RE] = ar + br;
-                    v[j + DFT.IM] = ai + bi;
+                    v[j + 0] = ar + br;
+                    v[j + 1] = ai + bi;
 
                     // 後半 (a - b) * w
                     let xr = ar - br;
                     let xi = ai - bi;
-                    v[k + DFT.RE] = xr * wcs - xi * wsn;
-                    v[k + DFT.IM] = xr * wsn + xi * wcs;
+                    v[k + 0] = xr * wcs - xi * wsn;
+                    v[k + 1] = xr * wsn + xi * wcs;
                 }
 
                 // 回転因子を回転
@@ -192,7 +192,7 @@ class DFT {
 
         // 逆変換用のスケール
         if (inv) {
-            DFT.scaleElements(nd, v);
+            DFT.scaleElements(nd, v, n);
         }
     }
 }
