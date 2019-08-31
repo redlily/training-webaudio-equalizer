@@ -1,4 +1,3 @@
-
 class DFT {
 
     static swap(v, a, b) {
@@ -15,7 +14,6 @@ class DFT {
         let nh = n >>> 1;
 
         for (let i = 0, j = 0; i < n; i += 4) {
-            // データの入れ替え
             DFT.swap(v, i + n, j + 2);
             if (i < j) {
                 DFT.swap(v, i + n2, j + n2);
@@ -28,9 +26,9 @@ class DFT {
         }
     }
 
-    static scaleElements(n, v, s) {
+    static scaleElements(n, v, s, off = 0) {
         for (let i = 0; i < n; ++i) {
-            v[i] /= s;
+            v[off + i] /= s;
         }
     }
 
@@ -41,17 +39,17 @@ class DFT {
      * @param b 出力用のデータ、実数、虚数の順で配列される
      */
     static dft(n, a, b) {
-        // b[y] = Σ[N - 1, j = 0] a[j] * e^(-2.0 * i * j * k / N)
+        // b[k] = Σ[N - 1, j = 0] a[j] * e^(-2.0 * π * i * j * k / N)
         for (let k = 0; k < n; ++k) {
-            // Σ[N - 1, j = 0] a[j] * e^(-2.0 * i * j * k / N)
+            // Σ[N - 1, j = 0] a[j] * e^(-2.0 * π * i * j * k / N)
             let sumRe = 0;
             let sumIm = 0;
             for (let j = 0; j < n; ++j) {
-                // e^(-2.0 * i * j * k / N)
+                // e^(-2.0 * π * i * j * k / N)
                 let rad = -2.0 * Math.PI * k * j / n;
                 let cs = Math.cos(rad), sn = Math.sin(rad);
                 let re = a[(j << 1) + 0], im = a[(j << 1) + 1];
-                // a[j] * e^(-2.0 * i * j * k / N)
+                // a[j] * e^(-2.0 * π * i * j * k / N)
                 sumRe += re * cs - im * sn;
                 sumIm += re * sn + im * cs;
             }
@@ -67,22 +65,72 @@ class DFT {
      * @param b 出力用のデータ、実数、虚数の順で配列される
      */
     static idft(n, a, b) {
-        // b[j] = Σ[N - 1, k = 0] (1 / N) * a[k] * e^(2.0 * i * j * k / N)
-        for (let i = 0; i < n; ++i) {
-            // Σ[N - 1, k = 0] (1 / N) * a[k] * e^(2.0 * i * j * k / N)
+        // b[j] = Σ[N - 1, k = 0] (1 / N) * a[k] * e^(2.0 * π * i * j * k / N)
+        for (let j = 0; j < n; ++j) {
+            // Σ[N - 1, k = 0] (1 / N) * a[k] * e^(2.0 * π * i * j * k / N)
             let sumRe = 0;
             let sumIm = 0;
-            for (let j = 0; j < n; ++j) {
-                // e^(2.0 * i * j * k / N)
-                let rad = 2.0 * Math.PI * i * j / n;
+            for (let k = 0; k < n; ++k) {
+                // e^(2.0 * π * i * j * k / N)
+                let rad = 2.0 * Math.PI * j * k / n;
                 let cs = Math.cos(rad), sn = Math.sin(rad);
-                let re = a[(j << 1) + 0], im = a[(j << 1) + 1];
-                // a[k] * e^(2.0 * i * j * k / N)
+                let re = a[(k << 1) + 0], im = a[(k << 1) + 1];
+                // a[k] * e^(2.0 * π * i * j * k / N)
                 sumRe += re * cs - im * sn;
                 sumIm += re * sn + im * cs;
             }
-            b[(i << 1) + 0] = sumRe / n;
-            b[(i << 1) + 1] = sumIm / n;
+            b[(j << 1) + 0] = sumRe / n;
+            b[(j << 1) + 1] = sumIm / n;
+        }
+    }
+
+    /**
+     * 高速フーリエ変換、単純な再帰呼び出しを使用した実装
+     * @param n 変換するデータの要素数、実装の特性上2のべき乗を指定する必要がある
+     * @param v 変換するデータ、実数、虚数の順で配置された複素数の配列
+     * @param inv 逆変換を行う場合は true を設定する
+     * @param off 変換を行う配列vの配列インデックス
+     */
+    static simpleFFT(n, v, inv = false, off = 0) {
+        // 前処理
+        let rad = (inv ? Math.PI : -Math.PI) / n;
+        for (let j = 0; j < n; j += 2) {
+            let a = off + j;
+            let ar = v[a + 0], ai = v[a + 1];
+            let b = off + n + j;
+            let br = v[b + 0], bi = v[b + 1];
+
+            // 偶数列 (a + b)
+            v[a + 0] = ar + br;
+            v[a + 1] = ai + bi;
+
+            // 奇数列 (a - b) * w
+            let xr = ar - br, xi = ai - bi;
+            let r = rad * j;
+            let wr = Math.cos(r), wi = Math.sin(r); // 回転因子 e^(-2 * π * i * j / N)
+            v[b + 0] = xr * wr - xi * wi;
+            v[b + 1] = xr * wi + xi * wr;
+        }
+
+        // 再帰的にDFTをかける
+        let nd = n << 1;
+        if (n > 2) {
+            DFT.simpleFFT(n >>> 1, v, inv, off); // 偶数列
+            DFT.simpleFFT(n >>> 1, v, inv, off + n); // 奇数列
+
+            // 並べ替え
+            for (let m = nd, mh = n, mq; 1 < (mq = mh >>> 1); m = mh, mh = mq) {
+                for (let i = mq; i < nd - mh; i += m) {
+                    for (let j = i, k = i + mq; j < i + mq; j += 2, k += 2) {
+                        DFT.swap(v, off + j, off + k);
+                    }
+                }
+            }
+        }
+
+        // 逆変換用のスケール
+        if (inv) {
+            DFT.scaleElements(nd, v, 2, off);
         }
     }
 
@@ -195,4 +243,55 @@ class DFT {
             DFT.scaleElements(nd, v, n);
         }
     }
+}
+
+function testDFT() {
+    let a = [10, 2, 4, 3, 1, -1, -4, 2, 3, -9, 20, 12, -30, 15, -13, -20];
+    let b = new Array(16);
+
+    DFT.dft(8, a, b);
+    console.log(b);
+
+    DFT.simpleFFT(8, a);
+    console.log(a);
+
+    a = [10, 2, 4, 3, 1, -1, -4, 2, 3, -9, 20, 12, -30, 15, -13, -20];
+    DFT.fft(8, a);
+    console.log(a);
+
+    a = [10, 2, 4, 3, 1, -1, -4, 2, 3, -9, 20, 12, -30, 15, -13, -20];
+    DFT.fftHighSpeed(8, a);
+    console.log(a);
+}
+
+function testPerformance() {
+    let a = new Float64Array(2048);
+    let b = new Float64Array(2048);
+    for (let i = 0; i < a.length; ++i) {
+        a[i] = Math.random();
+    }
+
+    let begin = new Date();
+    for (let i = 0; i < 10000; ++i) {
+        DFT.simpleFFT(1024, a);
+    }
+    console.log(`simpleFFT ${new Date().getTime() - begin.getTime()}`);
+
+    begin = new Date();
+    for (let i = 0; i < 10000; ++i) {
+        DFT.fft(1024, a);
+    }
+    console.log(`fft ${new Date().getTime() - begin.getTime()}`);
+
+    begin = new Date();
+    for (let i = 0; i < 10000; ++i) {
+        DFT.fftHighSpeed(1024, a);
+    }
+    console.log(`fftHighSpeed ${new Date().getTime() - begin.getTime()}`);
+
+    begin = new Date();
+    for (let i = 0; i < 1000; ++i) {
+        DFT.dft(1024, a, b);
+    }
+    console.log(`dft ${new Date().getTime() - begin.getTime()}`);
 }

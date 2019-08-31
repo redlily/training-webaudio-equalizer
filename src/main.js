@@ -358,7 +358,9 @@ let tutils = {};
         audioWorkBuffer = new Float32Array(NUM_SAMPLES * 4); // FFT処理用のバッファ、処理サンプルの倍の複素数を収納できるようにする
 
         // WebAudio系の初期化
-        audioContext = new AudioContext();
+        audioContext = window.AudioContext != null ?
+            new window.AudioContext() :
+            new window.webkitAudioContext();
 
         scriptProcessor = audioContext.createScriptProcessor(NUM_SAMPLES, 2, 2);
         scriptProcessor.addEventListener("audioprocess", onAudioProcess);
