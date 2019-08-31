@@ -612,10 +612,8 @@ let tutils = {};
         if (!isInitializedAudio()) {
             initializeAudio();
         }
-        if (file.type.indexOf("audio/") != -1) {
-            musicName.innerText = "Playing music is " + file.name + ".";
-            loadAudio(URL.createObjectURL(file));
-        }
+        musicName.innerText = "Playing music is " + file.name + ".";
+        loadAudio(URL.createObjectURL(file));
     }
 
     // ボリュームボタンを押下
