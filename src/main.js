@@ -339,6 +339,8 @@ let tutils = {};
     let audioPrevOutputs;
     let audioWorkBuffer;
 
+    let audioUrl = "tw067.mp3";
+
     // イニシャライズされているか否か
     function isInitializedAudio() {
         return audioContext != null;
@@ -382,7 +384,11 @@ let tutils = {};
 
     // 音声ファイルを読み込む
     function loadAudio(url) {
-        audioElement.src = url;
+        if (isInitializedAudio()) {
+            audioElement.src = url;
+        } else {
+            audioUrl = url;
+        }
     }
 
     // 音声ファイルの再生時間が更新
@@ -397,7 +403,7 @@ let tutils = {};
 
     // 音声ファイルを再生する
     function playAudio() {
-        if (!isPlayAudio() && audioElement.readyState > 2) {
+        if (!isPlayAudio()) {
             audioElement.play();
         }
     }
@@ -609,9 +615,6 @@ let tutils = {};
 
     // 音声ファイルの読み込み
     function loadAudioFile(file) {
-        if (!isInitializedAudio()) {
-            initializeAudio();
-        }
         musicName.innerText = "Playing music is " + file.name + ".";
         loadAudio(URL.createObjectURL(file));
     }
@@ -629,9 +632,8 @@ let tutils = {};
     function onClickPlayButton(event) {
         if (!isInitializedAudio()) {
             initializeAudio();
-            loadAudio("tw067.mp3");
+            loadAudio(audioUrl);
         }
-
         if (!isPlayAudio()) {
             playAudio();
         } else {
